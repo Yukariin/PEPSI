@@ -14,17 +14,9 @@ Width = 256
 batch_size = 8
 mask_size = 128
 
-dPath_l = ('./List')
-
-dPath_train = ('/train_fh256.txt')
-dPath_test = ('/test_fh256.txt')
-dPath_testm = ('/test_mask256.txt')
-dPath_testf = ('/test_maskff.txt')
-
-name_f, num_f = ri.read_labeled_image_list(dPath_l + dPath_train)
+name_f, num_f = ri.read_labeled_image_list('/content/drive/My Drive/DEC/data/train.flist')
 total_batch = int(num_f / batch_size)
 
-save_path = './validation/v1'
 model_path = './model/v1'
 
 restore = False
