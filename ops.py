@@ -1,21 +1,24 @@
+import math as mt
+import random as rr
+
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
 import numpy as np
-import random as rr
-import math as mt
 import cv2
 from scipy import misc
+
 
 def instance_norm(input, name="instance_norm"):
     with tf.variable_scope(name):
         depth = input.get_shape()[3]
         scale = tf.get_variable("scale", [depth], initializer=tf.random_normal_initializer(1.0, 0.02, dtype=tf.float32))
         offset = tf.get_variable("offset", [depth], initializer=tf.constant_initializer(0.0))
-        mean, variance = tf.nn.moments(input, axes=[1,2], keep_dims=True)
+        mean, variance = tf.nn.moments(input, axes=[1, 2], keep_dims=True)
         epsilon = 1e-5
         inv = tf.rsqrt(variance + epsilon)
         normalized = (input-mean)*inv
         return scale*normalized + offset
+
 
 def make_sq_mask(size, m_size, batch_size):
 
@@ -28,6 +31,7 @@ def make_sq_mask(size, m_size, batch_size):
 
     return temp, start_x, start_y
 
+
 def softmax(input):
 
     k = tf.exp(input - 3)
@@ -37,6 +41,7 @@ def softmax(input):
     ouput = tf.exp(input - 3) / k
 
     return ouput
+
 
 def reduce_var(x, axis=None, keepdims=False):
     """Variance of a tensor, alongside the specified axis.
@@ -56,6 +61,7 @@ def reduce_var(x, axis=None, keepdims=False):
     devs_squared = tf.square(x - m)
     return tf.reduce_mean(devs_squared, axis=axis, keepdims=keepdims)
 
+
 def reduce_std(x, axis=None, keepdims=False):
     """Standard deviation of a tensor, alongside the specified axis.
 
@@ -72,10 +78,12 @@ def reduce_std(x, axis=None, keepdims=False):
     """
     return tf.sqrt(reduce_var(x, axis=axis, keepdims=keepdims))
 
+
 def l2_norm(v, eps=1e-12):
     return v / (tf.reduce_sum(v ** 2) ** 0.5 + eps)
 
-def ff_mask(size, b_zise, maxLen, maxWid, maxAng, maxNum, maxVer, minLen = 20, minWid = 15, minVer = 5):
+
+def ff_mask(size, b_zise, maxLen, maxWid, maxAng, maxNum, maxVer, minLen=20, minWid=15, minVer=5):
 
     mask = np.ones((b_zise, size, size, 3))
 
@@ -141,7 +149,8 @@ def ff_mask(size, b_zise, maxLen, maxWid, maxAng, maxNum, maxVer, minLen = 20, m
 
     return mask
 
-def ff_mask_batch(size, b_size, maxLen, maxWid, maxAng, maxNum, maxVer, minLen = 20, minWid = 15, minVer = 5):
+
+def ff_mask_batch(size, b_size, maxLen, maxWid, maxAng, maxNum, maxVer, minLen=20, minWid=15, minVer=5):
 
     mask = None
     temp = ff_mask(size, 1, maxLen, maxWid, maxAng, maxNum, maxVer, minLen=minLen, minWid=minWid, minVer=minVer)
@@ -157,6 +166,7 @@ def ff_mask_batch(size, b_size, maxLen, maxWid, maxAng, maxNum, maxVer, minLen =
             temp = cv2.flip(temp, 0)
 
     return mask
+
 
 def spectral_norm(w, name, iteration=1):
     w_shape = w.shape.as_list()
@@ -185,6 +195,7 @@ def spectral_norm(w, name, iteration=1):
 
     return w_norm
 
+
 def convolution_SN(tensor, output_dim, kernel_size, stride, name):
     _, h, w, c = [i.value for i in tensor.get_shape()]
 
@@ -195,6 +206,7 @@ def convolution_SN(tensor, output_dim, kernel_size, stride, name):
 
     return output
 
+
 def dense_SN(tensor, output_dim, name):
     _, h, w, c = [i.value for i in tensor.get_shape()]
 
@@ -204,6 +216,7 @@ def dense_SN(tensor, output_dim, name):
     output = tf.nn.conv2d(tensor, filter=spectral_norm(w, name=name + 'w'), strides=[1, 1, 1, 1], padding='VALID') + b
 
     return output
+
 
 def dense_RED_SN(tensor, name):
     sn_w = None
@@ -218,7 +231,7 @@ def dense_RED_SN(tensor, name):
 
     for it in range(h*w):
         w_pixel = weight[it:it+1, :, :, :]
-        sn_w_pixel = spectral_norm(w_pixel, name=name + 'w_%d' %it)
+        sn_w_pixel = spectral_norm(w_pixel, name=name + 'w_%d' % it)
 
         if it == 0:
             sn_w = sn_w_pixel
