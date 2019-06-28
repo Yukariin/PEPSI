@@ -246,7 +246,7 @@ def dense_RED_SN(tensor, name):
     return output_RED
 
 
-def resize(x, scale=2, to_shape=None, align_corners=True, dynamic=False,
+def resize(x, scale=2, to_shape=None, align_corners=False, dynamic=False,
            func=tf.image.resize_nearest_neighbor):
 
     if dynamic:
