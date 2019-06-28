@@ -2,8 +2,7 @@ import os
 import random
 
 import numpy as np
-from scipy import misc
-import scipy.misc as sci
+import imageio
 
 
 def make_list(dPath):
@@ -84,7 +83,7 @@ def MakeImageBlock(Qfilenames, Height, Width, i, batch_size, resize=True):
 
     for iL in range((i * batch_size), (i * batch_size) + batch_size):
 
-        Loadimage = misc.imread(Qfilenames[iL])
+        Loadimage = imageio.imread(Qfilenames[iL])
 
         # if Gray make it colors
         if Loadimage.ndim == 2:
@@ -95,7 +94,7 @@ def MakeImageBlock(Qfilenames, Height, Width, i, batch_size, resize=True):
             Loadimage = Loadimage[:, :, 0:3]
 
         if resize:
-            Loadimage = misc.imresize(Loadimage, [Height, Width, 3])
+            Loadimage = imageio.imresize(Loadimage, [Height, Width, 3])
 
         Loadimage = Loadimage.astype(np.float32)
 
