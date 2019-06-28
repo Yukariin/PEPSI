@@ -12,15 +12,14 @@ import cv2
 Height = 256
 Width = 256
 batch_size = 8
-mask_size = 128
 
 name_f, num_f = ri.read_labeled_image_list('/content/drive/My Drive/DEC/data/train.flist')
 total_batch = int(num_f / batch_size)
 
 model_path = './model/v1'
 
-restore = False
-restore_point = 900000
+restore = True
+restore_point = 10000
 Checkpoint = model_path + '/cVG iter ' + str(restore_point) + '/'
 WeightName = Checkpoint + 'Train_' + str(restore_point) + '.meta'
 
@@ -121,14 +120,14 @@ for iter_count in range(restore_point, Max_iter + 1):
 
     data_temp = 255.0 * ((data_g + 1) / 2.0)
 
-    mask = op.ff_mask_batch(Height, batch_size, 50, 30, 3.14, 5, 15)
+    mask = op.ff_mask_batch(Height, batch_size, 50, 20, 3.14, 5, 15)
 
     data_m = data_temp * mask
 
     data_m = (data_m / 255.0) * 2.0 - 1
 
     _, Loss1 = sess.run([optimize_D, Loss_D], feed_dict={X: data_m, Y: data_g, MASK: mask})
-    _, Loss2, Loss3 = sess.run([optimize_G, Loss_G, Loss_s_re], feed_dict={X: data_m, Y: data_g, MASK: mask, IT:iter_count})
+    _, Loss2, Loss3 = sess.run([optimize_G, Loss_G, Loss_s_re], feed_dict={X: data_m, Y: data_g, MASK: mask, IT: iter_count})
 
     if iter_count % 100 == 0:
         consume_time = time.time() - start_time
