@@ -23,7 +23,7 @@ def conv_nn(input, dims1, dims2, k_size=3, upsample=True):
     return L2
 
 
-def encoder(input, reuse, name):
+def encoder(input, reuse=False, name='G_en'):
     with tf.variable_scope(name):
         if reuse:
             tf.get_variable_scope().reuse_variables()
@@ -80,7 +80,7 @@ def encoder(input, reuse, name):
         return DCL4
 
 
-def decoder(input, reuse, name):
+def decoder(input, reuse=False, name='G_de'):
     with tf.variable_scope(name):
         if reuse:
             tf.get_variable_scope().reuse_variables()
@@ -178,7 +178,7 @@ def discriminator_L(input, reuse, name):
         return L5
 
 
-def discriminator_red(input, reuse, name):
+def discriminator_red(input, reuse=False, name='disc_red'):
     with tf.variable_scope(name):
         # image is 256 x 256 x input_c_dim
         if reuse:
@@ -215,7 +215,7 @@ def discriminator_red(input, reuse, name):
         return L7
 
 
-def contextual_block(bg_in, fg_in, mask, k_size, lamda, name, stride=1):
+def contextual_block(bg_in, fg_in, mask, k_size=3, stride=1, lamda=50.0, reuse=False, name='CB1'):
     with tf.variable_scope(name):
         b, h, w, dims = [i.value for i in bg_in.get_shape()]
         temp = tf.image.resize_nearest_neighbor(mask, (h, w))

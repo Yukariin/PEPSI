@@ -22,7 +22,7 @@ total_batch = int(num_f / BATCH_SIZE)
 model_path = './model/v1'
 
 restore = True
-restore_point = 10000
+restore_point = 20000
 Checkpoint = model_path + '/cVG iter ' + str(restore_point) + '/'
 WeightName = Checkpoint + 'Train_' + str(restore_point) + '.meta'
 
@@ -44,17 +44,17 @@ IT = tf.placeholder(tf.float32)
 
 input = tf.concat([X, MASK], 3)
 
-vec_en = mm.encoder(input, reuse=False, name='G_en')
+vec_en = mm.encoder(input, reuse=False)
 
-vec_con = mm.contextual_block(vec_en, vec_en, MASK, 3, 50.0, 'CB1', stride=1)
+vec_con = mm.contextual_block(vec_en, vec_en, MASK)
 
-I_co = mm.decoder(vec_en, reuse=False, name='G_de')
-I_ge = mm.decoder(vec_con, reuse=True, name='G_de')
+I_co = mm.decoder(vec_en, reuse=False)
+I_ge = mm.decoder(vec_con, reuse=True)
 
 image_result = I_ge * (1-MASK) + Y*MASK
 
-D_real_red = mm.discriminator_red(Y, reuse=False, name='disc_red')
-D_fake_red = mm.discriminator_red(image_result, reuse=True, name='disc_red')
+D_real_red = mm.discriminator_red(Y, reuse=False)
+D_fake_red = mm.discriminator_red(image_result, reuse=True)
 
 # ------- Loss
 
