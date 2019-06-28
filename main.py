@@ -1,20 +1,23 @@
-import tensorflow as tf
-import scipy.misc as sci
 import os
-import numpy as np
-import Read_Image_List as ri
-import module as mm
-import ops as op
 import random
 import time
-import cv2
 
-Height = 256
-Width = 256
-batch_size = 8
+import cv2
+import numpy as np
+import tensorflow as tf
+import scipy.misc as sci
+
+import module as mm
+import ops as op
+import Read_Image_List as ri
+
+
+HEIGHT = 256
+WIDTH = 256
+BATCH_SIZE = 8
 
 name_f, num_f = ri.read_labeled_image_list('/content/drive/My Drive/DEC/data/train.flist')
-total_batch = int(num_f / batch_size)
+total_batch = int(num_f / BATCH_SIZE)
 
 model_path = './model/v1'
 
@@ -23,7 +26,7 @@ restore_point = 10000
 Checkpoint = model_path + '/cVG iter ' + str(restore_point) + '/'
 WeightName = Checkpoint + 'Train_' + str(restore_point) + '.meta'
 
-if restore == False:
+if not restore:
     restore_point = 0
 
 saving_iter = 10000
@@ -31,10 +34,10 @@ Max_iter = 1000000
 
 # ------- variables
 
-X = tf.placeholder(tf.float32, [batch_size, Height, Width, 3])
-Y = tf.placeholder(tf.float32, [batch_size, Height, Width, 3])
+X = tf.placeholder(tf.float32, [BATCH_SIZE, HEIGHT, WIDTH, 3])
+Y = tf.placeholder(tf.float32, [BATCH_SIZE, HEIGHT, WIDTH, 3])
 
-MASK = tf.placeholder(tf.float32, [batch_size, Height, Width, 3])
+MASK = tf.placeholder(tf.float32, [BATCH_SIZE, HEIGHT, WIDTH, 3])
 IT = tf.placeholder(tf.float32)
 
 # ------- structure
@@ -45,8 +48,8 @@ vec_en = mm.encoder(input, reuse=False, name='G_en')
 
 vec_con = mm.contextual_block(vec_en, vec_en, MASK, 3, 50.0, 'CB1', stride=1)
 
-I_co = mm.decoder(vec_en, Height, Height, reuse=False, name='G_de')
-I_ge = mm.decoder(vec_con, Height, Height, reuse=True, name='G_de')
+I_co = mm.decoder(vec_en, HEIGHT, HEIGHT, reuse=False, name='G_de')
+I_ge = mm.decoder(vec_con, HEIGHT, HEIGHT, reuse=True, name='G_de')
 
 image_result = I_ge * (1-MASK) + Y*MASK
 
@@ -101,7 +104,7 @@ init = tf.global_variables_initializer()
 sess.run(init)
 saver = tf.train.Saver()
 
-if restore == True:
+if restore:
     print('Weight Restoring.....')
     Restore = tf.train.import_meta_graph(WeightName)
     Restore.restore(sess, tf.train.latest_checkpoint(Checkpoint))
@@ -116,11 +119,11 @@ for iter_count in range(restore_point, Max_iter + 1):
     if i == 0:
         np.random.shuffle(name_f)
 
-    data_g = ri.MakeImageBlock(name_f, Height, Width, i, batch_size)
+    data_g = ri.MakeImageBlock(name_f, HEIGHT, WIDTH, i, BATCH_SIZE)
 
     data_temp = 255.0 * ((data_g + 1) / 2.0)
 
-    mask = op.ff_mask_batch(Height, batch_size, 50, 20, 3.14, 5, 15)
+    mask = op.ff_mask_batch(HEIGHT, BATCH_SIZE, 50, 20, 3.14, 5, 15)
 
     data_m = data_temp * mask
 
