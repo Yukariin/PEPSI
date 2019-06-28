@@ -48,8 +48,8 @@ vec_en = mm.encoder(input, reuse=False, name='G_en')
 
 vec_con = mm.contextual_block(vec_en, vec_en, MASK, 3, 50.0, 'CB1', stride=1)
 
-I_co = mm.decoder(vec_en, HEIGHT, HEIGHT, reuse=False, name='G_de')
-I_ge = mm.decoder(vec_con, HEIGHT, HEIGHT, reuse=True, name='G_de')
+I_co = mm.decoder(vec_en, reuse=False, name='G_de')
+I_ge = mm.decoder(vec_con, reuse=True, name='G_de')
 
 image_result = I_ge * (1-MASK) + Y*MASK
 

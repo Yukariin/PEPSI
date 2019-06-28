@@ -5,7 +5,7 @@ import tensorflow.contrib.layers as layers
 from ops import *
 
 
-def conv_nn(input, dims1, dims2, size1, size2, k_size=3):
+def conv_nn(input, dims1, dims2, k_size=3, upsample=True):
 
     pp = tf.pad(input, [[0, 0], [1, 1], [1, 1], [0, 0]], "REFLECT")
     L1 = layers.conv2d(pp, dims1, [k_size, k_size], stride=[1, 1],
@@ -16,7 +16,9 @@ def conv_nn(input, dims1, dims2, size1, size2, k_size=3):
     L2 = layers.conv2d(pp, dims2, [k_size, k_size], stride=[1, 1],
                        padding='VALID', activation_fn=None)
     L2 = tf.nn.elu(L2)
-    L2 = tf.image.resize_nearest_neighbor(L2, (size1, size2))
+
+    if upsample:
+        L2 = resize(L2)
 
     return L2
 
@@ -78,20 +80,20 @@ def encoder(input, reuse, name):
         return DCL4
 
 
-def decoder(input, size1, size2, reuse, name):
+def decoder(input, reuse, name):
     with tf.variable_scope(name):
         if reuse:
             tf.get_variable_scope().reuse_variables()
         else:
             assert tf.get_variable_scope().reuse is False
 
-        DL1 = conv_nn(input, 128, 128, int(size1/4), int(size2/4))  # 64 64 128
+        DL1 = conv_nn(input, 128, 128)  # 64 64 128
 
-        DL2 = conv_nn(DL1, 64, 64, int(size1/2), int(size2/2))  # 128 128 64
+        DL2 = conv_nn(DL1, 64, 64)  # 128 128 64
 
-        DL3 = conv_nn(DL2, 32, 32, int(size1), int(size2))
+        DL3 = conv_nn(DL2, 32, 32)  # 256 256 32
 
-        DL4 = conv_nn(DL3, 16, 16, int(size1), int(size2))
+        DL4 = conv_nn(DL3, 16, 16, upsample=False)  # 256 256 16
 
         LL2 = layers.conv2d(DL4, 3, [3, 3], stride=[1, 1],
                             padding='SAME', activation_fn=None)  # 256 256 3
@@ -233,7 +235,6 @@ def contextual_block(bg_in, fg_in, mask, k_size, lamda, name, stride=1):
             [1, stride, stride, 1],
             [1, 1, 1, 1],
             'VALID')
-
         patch1 = tf.reshape(patch1, (b, 1, c, k_size*k_size*dims))
         patch1 = tf.reshape(patch1, (b, 1, 1, c, k_size * k_size * dims))
         patch1 = tf.transpose(patch1, [0, 1, 2, 4, 3])
