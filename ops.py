@@ -244,3 +244,23 @@ def dense_RED_SN(tensor, name):
     output_RED = tf.reduce_sum(tensor*w_rs_t + b, axis=3, keepdims=True)
 
     return output_RED
+
+
+def resize(x, scale=2, to_shape=None, align_corners=True, dynamic=False,
+           func=tf.image.resize_nearest_neighbor):
+
+    if dynamic:
+        xs = tf.cast(tf.shape(x), tf.float32)
+        new_xs = [tf.cast(xs[1]*scale, tf.int32),
+                  tf.cast(xs[2]*scale, tf.int32)]
+    else:
+        xs = x.get_shape().as_list()
+        new_xs = [int(xs[1]*scale), int(xs[2]*scale)]
+
+    if to_shape is None:
+        x = func(x, new_xs, align_corners=align_corners)
+    else:
+        x = func(x, [to_shape[0], to_shape[1]],
+                 align_corners=align_corners)
+
+    return x
