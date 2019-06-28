@@ -2,7 +2,9 @@ import os
 import random
 
 import numpy as np
-import imageio
+from scipy import misc
+
+from process_ops import random_transform
 
 
 def make_list(dPath):
@@ -74,16 +76,16 @@ def read_labeled_image_list2(image_list_file):
     return filenames1, Total_Image_Num, xs, ys
 
 
-def MakeImageBlock(Qfilenames, Height, Width, i, batch_size, resize=True):
+def MakeImageBlock(Qfilenames, height, width, i, batch_size, resize=True):
 
     iCount = 0
-    Image = np.zeros((batch_size, Height, Width, 3))
+    Image = np.zeros((batch_size, height, width, 3))
 
     # Query Image block
 
     for iL in range((i * batch_size), (i * batch_size) + batch_size):
 
-        Loadimage = imageio.imread(Qfilenames[iL])
+        Loadimage = misc.imread(Qfilenames[iL])
 
         # if Gray make it colors
         if Loadimage.ndim == 2:
@@ -94,9 +96,17 @@ def MakeImageBlock(Qfilenames, Height, Width, i, batch_size, resize=True):
             Loadimage = Loadimage[:, :, 0:3]
 
         if resize:
-            Loadimage = imageio.imresize(Loadimage, [Height, Width, 3])
+            Loadimage = misc.imresize(Loadimage, [height, width, 3])
 
         Loadimage = Loadimage.astype(np.float32)
+
+        Loadimage = random_transform(
+            Loadimage,
+            rotation_range=10,
+            shear_range=.2,
+            zoom_range=.2,
+            channel_shift_range=10.,
+            horizontal_flip=True)
 
         # Mean Value subtraction
         Loadimage = (Loadimage / 255.0 - 0.5) * 2
